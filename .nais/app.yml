@@ -21,6 +21,7 @@ spec:
       memory: 512Mi
   kafka:
     pool: {{kafka-pool}}
+    streams: true
   liveness:
     path: /actuator/healthy
     initialDelay: 3
@@ -34,6 +35,8 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
+  secureLogs:
+    enabled: true
 
   env:
     - name: LOG_APPENDER

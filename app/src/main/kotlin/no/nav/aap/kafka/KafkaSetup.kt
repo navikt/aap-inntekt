@@ -119,3 +119,7 @@ fun <V : Any> KStream<String, V>.logConsumed(): KStream<String, V> = transformVa
         }
     }
 )
+
+fun <K, V> KStream<K, V>.to(topic: Topic<K, V>, producedWith: Produced<K, V>) = this
+    .peek { key, value -> secureLog.info("produced [${topic.name}] K:$key V:$value") }
+    .to(topic.name, producedWith)
