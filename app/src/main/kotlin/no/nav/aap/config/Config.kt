@@ -5,10 +5,14 @@ import com.sksamuel.hoplite.MapPropertySource
 import com.sksamuel.hoplite.yaml.YamlParser
 import io.ktor.application.*
 import io.ktor.config.*
+import no.nav.aap.azure.AzureConfig
+import no.nav.aap.inntektskomponent.InntektConfig
 import no.nav.aap.kafka.KafkaConfig
 
 data class Config(
-    val kafka: KafkaConfig
+    val kafka: KafkaConfig,
+    val azure: AzureConfig,
+    val inntekt: InntektConfig
 )
 
 inline fun <reified T : Any> Application.loadConfig(vararg resources: String = arrayOf("/application.yml")): T =

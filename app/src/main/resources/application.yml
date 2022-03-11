@@ -1,3 +1,10 @@
+azure:
+  tokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+  clientId: ${AZURE_APP_CLIENT_ID}
+  clientSecret: ${AZURE_APP_CLIENT_SECRET}
+inntekt:
+  proxyBaseUrl: ${PROXY_BASE_URL}
+  scope: ${PROXY_SCOPE}
 kafka:
   application-id: ${KAFKA_STREAMS_APPLICATION_ID:-inntekt}
   brokers: ${KAFKA_BROKERS:-localhost:9092}

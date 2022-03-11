@@ -1,6 +1,14 @@
 package no.nav.aap
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.logging.*
 import io.ktor.metrics.micrometer.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -11,12 +19,19 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.avro.inntekter.v1.Inntekt
 import no.nav.aap.avro.inntekter.v1.Inntekter
 import no.nav.aap.avro.inntekter.v1.Response
+import no.nav.aap.azure.AzureClient
 import no.nav.aap.config.Config
 import no.nav.aap.config.loadConfig
 import no.nav.aap.kafka.*
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
+import org.slf4j.LoggerFactory
+import java.time.YearMonth
+import java.util.UUID
 
+internal val objectMapper: ObjectMapper = jacksonObjectMapper()
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .registerModule(JavaTimeModule())
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
@@ -30,9 +45,17 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
 
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
+    val inntektRestClient = InntektRestClient(
+        config.inntekt.proxyBaseUrl,
+        config.inntekt.scope,
+        simpleHttpClient(),
+        AzureClient(config.azure.tokenEndpoint, config.azure.clientId, config.azure.clientSecret)
+    )
+
     val topics = Topics(config.kafka)
-    val topology = createTopology(topics)
+    val topology = createTopology(topics, inntektRestClient)
     kafka.start(topology, config.kafka)
+
 
     routing {
         get("actuator/healthy") {
@@ -45,24 +68,59 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
     }
 }
 
-private fun createTopology(topics: Topics): Topology = StreamsBuilder().apply {
+private fun createTopology(topics: Topics, inntektRestClient: InntektRestClient): Topology = StreamsBuilder().apply {
     stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
         .logConsumed()
         .filter { _, inntekter -> inntekter.response == null }
-        .mapValues(::addInntekterResponse)
+        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
         .to(topics.inntekter, topics.inntekter.produced("produced--inntekter"))
 }.build()
 
-// TODO Legg til ekte verdier på sikt
-private fun addInntekterResponse(inntekter: Inntekter): Inntekter =
-    inntekter.apply {
+private fun hentInntekterOgLeggTilResponse(inntekter: Inntekter, inntektRestClient: InntektRestClient): Inntekter {
+    val fomYear = YearMonth.from(inntekter.request.fom)
+    val tomYear = YearMonth.from(inntekter.request.tom)
+
+    val inntekterFraInntektskomponent = inntektRestClient.hentInntektsliste(
+        inntekter.personident, fomYear, tomYear, "11-19", UUID.randomUUID().toString()
+    )
+
+    return inntekter.apply {
         response = Response.newBuilder()
             .setInntekter(
-                listOf(
-                    Inntekt("321", request.fom.plusYears(2), 400000.0),
-                    Inntekt("321", request.fom.plusYears(1), 400000.0),
-                    Inntekt("321", request.fom, 400000.0)
-                )
+                inntekterFraInntektskomponent.flatMap { måned ->
+                    måned.inntektsliste.map {
+                        Inntekt(it.orgnummer, måned.årMåned.atDay(1), it.beløp)
+                    }
+                }
             )
             .build()
     }
+}
+
+private fun simpleHttpClient() = HttpClient {
+    val sikkerLogg = LoggerFactory.getLogger("secureLog")
+
+    install(Logging) {
+        level = LogLevel.BODY
+        logger = object : Logger {
+            private var logBody = false
+            override fun log(message: String) {
+                when {
+                    message == "BODY START" -> logBody = true
+                    message == "BODY END" -> logBody = false
+                    logBody -> sikkerLogg.debug("respons fra Inntektskomponenten: $message")
+                }
+            }
+        }
+    }
+
+    install(HttpTimeout) {
+        connectTimeoutMillis = 10000
+        requestTimeoutMillis = 10000
+        socketTimeoutMillis = 10000
+    }
+
+    install(JsonFeature) {
+        this.serializer = JacksonSerializer(jackson = objectMapper)
+    }
+}
