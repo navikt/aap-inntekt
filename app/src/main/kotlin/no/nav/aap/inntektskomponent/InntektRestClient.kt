@@ -1,7 +1,5 @@
-package no.nav.aap
+package no.nav.aap.inntektskomponent
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -32,7 +30,7 @@ class InntektRestClient(
         tom: YearMonth,
         filter: String,
         callId: String
-    ) = clientLatencyStats.startTimer().use {
+    ): InntektskomponentResponse = clientLatencyStats.startTimer().use {
         runBlocking {
             httpClient.request<HttpStatement>("$proxyBaseUrl/api/v1/hentinntektliste") {
                 method = HttpMethod.Post
@@ -50,42 +48,14 @@ class InntektRestClient(
                     "maanedFom" to fom,
                     "maanedTom" to tom
                 )
-            }.execute { tilMånedListe(objectMapper.readValue(it.readText())) }
+            }.receive()
         }
     }
 }
 
-private fun tilMånedListe(node: JsonNode) = node.path("arbeidsInntektMaaned").map { tilMåned(it) }
-
-private fun tilInntekt(node: JsonNode) = Inntekt(
-    beløp = node["beloep"].asDouble(),
-    inntektstype = Inntektstype.valueOf(node["inntektType"].textValue()),
-    orgnummer = identifikator(node, "ORGANISASJON"),
-    fødselsnummer = identifikator(node, "NATURLIG_IDENT"),
-    aktørId = identifikator(node, "AKTOER_ID"),
-    beskrivelse = node["beskrivelse"].textValue(),
-    fordel = node["fordel"].textValue()
+data class InntektskomponentResponse(
+    val arbeidsInntektMaaned: List<Måned>
 )
-
-private fun identifikator(node: JsonNode, type: String) =
-    node["virksomhet"].takeIf { it["aktoerType"].asText() == type }?.get("identifikator")?.asText()
-
-private fun tilMåned(node: JsonNode) = Måned(
-    YearMonth.parse(node["aarMaaned"].asText()),
-    tilArbeidsforholdliste( node),
-    node.path("arbeidsInntektInformasjon").path("inntektListe").map(::tilInntekt)
-)
-
-private fun tilArbeidsforholdliste(
-    node: JsonNode
-) = node.path("arbeidsInntektInformasjon").path("arbeidsforholdListe").mapNotNull(::tilArbeidsforhold)
-
-private fun tilArbeidsforhold(node: JsonNode) = Arbeidsforhold(
-    node.getOptional("arbeidsforholdstype")?.asText(),
-    node.getOptional("arbeidsgiver")?.getOptional("identifikator")?.asText()
-)
-
-private fun JsonNode.getOptional(key: String) = this.takeIf { it.hasNonNull(key) }?.get(key)
 
 data class Måned(
     val årMåned: YearMonth,

@@ -22,6 +22,7 @@ import no.nav.aap.avro.inntekter.v1.Response
 import no.nav.aap.azure.AzureClient
 import no.nav.aap.config.Config
 import no.nav.aap.config.loadConfig
+import no.nav.aap.inntektskomponent.InntektRestClient
 import no.nav.aap.kafka.*
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
