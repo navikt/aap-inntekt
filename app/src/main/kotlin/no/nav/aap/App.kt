@@ -83,7 +83,7 @@ private fun hentInntekterOgLeggTilResponse(inntekter: Inntekter, inntektRestClie
 
     val inntekterFraInntektskomponent = inntektRestClient.hentInntektsliste(
         inntekter.personident, fomYear, tomYear, "11-19", UUID.randomUUID().toString()
-    )
+    ).arbeidsInntektMaaned
 
     return inntekter.apply {
         response = Response.newBuilder()
