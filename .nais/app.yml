@@ -15,10 +15,10 @@ spec:
   resources:
     limits:
       cpu: 1000m
-      memory: 1024Mi
+      memory: 8Gi
     requests:
       cpu: 500m
-      memory: 512Mi
+      memory: 4Gi
   kafka:
     pool: {{kafka-pool}}
     streams: true

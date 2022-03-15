@@ -56,8 +56,8 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
 //    )
 
     val topics = Topics(config.kafka)
-//    val topology = createTopology(topics)
-//    kafka.start(topology, config.kafka)
+    val topology = createTopology(topics)
+    kafka.start(topology, config.kafka)
 
 
     routing {
