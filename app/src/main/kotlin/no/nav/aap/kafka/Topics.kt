@@ -21,7 +21,7 @@ data class Topic<K, V>(
 }
 
 class Topics(private val config: KafkaConfig) {
-    val inntekter = Topic("aap.manuell.v1", Serdes.StringSerde(), Serdes.ByteArray())
+    val inntekter = Topic("aap.inntekter.v1", Serdes.StringSerde(), Serdes.ByteArray())
 
     private fun <T : SpecificRecord> avroSerde(): SpecificAvroSerde<T> = SpecificAvroSerde<T>().apply {
         val avroProperties = config.schemaRegistry + config.ssl
