@@ -15,10 +15,10 @@ spec:
   resources:
     limits:
       cpu: 1000m
-      memory: 8Gi
+      memory: 1024Mi
     requests:
       cpu: 500m
-      memory: 4Gi
+      memory: 512Mi
   kafka:
     pool: {{kafka-pool}}
     streams: true
@@ -41,3 +41,5 @@ spec:
   env:
     - name: LOG_APPENDER
       value: json
+    - name: KAFKA_SECURITY_ENABLED
+      value: "true"
