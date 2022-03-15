@@ -40,7 +40,7 @@ class KafkaSetup : Kafka {
     override fun start(topology: Topology, kafkaConfig: KafkaConfig) {
         streams = KafkaStreams(topology, kafkaConfig.consumer + kafkaConfig.producer)
         streams.setUncaughtExceptionHandler { err: Throwable ->
-            secureLog.error("Uventet feil, logger og leser neste record, ${err.message}")
+            secureLog.error("Uventet feil, logger og leser neste record, ${err.message}", err)
             StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.REPLACE_THREAD
         }
         streams.setStateListener { newState, oldState ->

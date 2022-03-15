@@ -34,6 +34,8 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     .registerModule(JavaTimeModule())
 
+private val secureLog = LoggerFactory.getLogger("secureLog")
+
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
@@ -44,6 +46,7 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
 
     install(MicrometerMetrics) { registry = prometheus }
 
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> secureLog.error("Uhåndtert feil", e) }
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
     val inntektRestClient = InntektRestClient(
