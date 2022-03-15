@@ -73,11 +73,11 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
 }
 
 private fun createTopology(topics: Topics, inntektRestClient: InntektRestClient): Topology = StreamsBuilder().apply {
-    stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
-        .logConsumed()
-        .filter { _, inntekter -> inntekter.response == null }
-        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
-        .to(topics.inntekter, topics.inntekter.produced("produced--inntekter"))
+//    stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
+//        .logConsumed()
+//        .filter { _, inntekter -> inntekter.response == null }
+//        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
+//        .to(topics.inntekter, topics.inntekter.produced("produced--inntekter"))
 }.build()
 
 private fun hentInntekterOgLeggTilResponse(inntekter: Inntekter, inntektRestClient: InntektRestClient): Inntekter {
