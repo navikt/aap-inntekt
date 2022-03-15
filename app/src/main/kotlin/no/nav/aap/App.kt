@@ -19,7 +19,6 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.avro.inntekter.v1.Inntekt
 import no.nav.aap.avro.inntekter.v1.Inntekter
 import no.nav.aap.avro.inntekter.v1.Response
-import no.nav.aap.azure.AzureClient
 import no.nav.aap.config.Config
 import no.nav.aap.config.loadConfig
 import no.nav.aap.inntektskomponent.InntektRestClient
@@ -49,15 +48,15 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> secureLog.error("Uhåndtert feil", e) }
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
-    val inntektRestClient = InntektRestClient(
-        config.inntekt.proxyBaseUrl,
-        config.inntekt.scope,
-        simpleHttpClient(),
-        AzureClient(config.azure.tokenEndpoint, config.azure.clientId, config.azure.clientSecret)
-    )
+//    val inntektRestClient = InntektRestClient(
+//        config.inntekt.proxyBaseUrl,
+//        config.inntekt.scope,
+//        simpleHttpClient(),
+//        AzureClient(config.azure.tokenEndpoint, config.azure.clientId, config.azure.clientSecret)
+//    )
 
     val topics = Topics(config.kafka)
-    val topology = createTopology(topics, inntektRestClient)
+    val topology = createTopology(topics)
     kafka.start(topology, config.kafka)
 
 
@@ -72,9 +71,10 @@ fun Application.server(kafka: Kafka = KafkaSetup()) {
     }
 }
 
-private fun createTopology(topics: Topics, inntektRestClient: InntektRestClient): Topology = StreamsBuilder().apply {
-//    stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
-//        .logConsumed()
+private fun createTopology(topics: Topics): Topology = StreamsBuilder().apply {
+    stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
+        .logConsumed()
+        .foreach { _, _ ->  }
 //        .filter { _, inntekter -> inntekter.response == null }
 //        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
 //        .to(topics.inntekter, topics.inntekter.produced("produced--inntekter"))
