@@ -11,7 +11,6 @@ class AzureClient(private val tokenEndpoint: String, private val clientId: Strin
 
     companion object {
         private val log = LoggerFactory.getLogger(AzureClient::class.java)
-        private val tjenestekallLog = LoggerFactory.getLogger("tjenestekall")
         private val objectMapper = ObjectMapper()
     }
 
