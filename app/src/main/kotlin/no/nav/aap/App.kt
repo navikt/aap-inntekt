@@ -76,7 +76,8 @@ private fun createTopology(topics: Topics, inntektRestClient: InntektRestClient)
     stream(topics.inntekter.name, topics.inntekter.consumed("inntekter-behov-mottatt"))
         .logConsumed()
         .filter { _, inntekter -> inntekter.response == null }
-        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
+//        .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
+        .mapValues { inntekter -> addMockInntekterResponse(inntekter) }
         .to(topics.inntekter, topics.inntekter.produced("produced--inntekter"))
 }.build()
 
@@ -100,6 +101,19 @@ private fun hentInntekterOgLeggTilResponse(inntekter: Inntekter, inntektRestClie
             .build()
     }
 }
+
+private fun addMockInntekterResponse(inntekter: Inntekter): Inntekter =
+    inntekter.apply {
+        response = Response.newBuilder()
+            .setInntekter(
+                listOf(
+                    Inntekt("321", request.fom.plusYears(2), 400000.0),
+                    Inntekt("321", request.fom.plusYears(1), 400000.0),
+                    Inntekt("321", request.fom, 400000.0)
+                )
+            )
+            .build()
+    }
 
 private fun simpleHttpClient() = HttpClient {
     val sikkerLogg = LoggerFactory.getLogger("secureLog")
