@@ -22,6 +22,7 @@ import no.nav.aap.model.Response
 import no.nav.aap.popp.PoppConfig
 import no.nav.aap.popp.PoppRestClient
 import org.slf4j.LoggerFactory
+import java.time.YearMonth
 import java.util.*
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
@@ -53,7 +54,7 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
         consume(Topics.inntekter)
             .filterNotNull { "filter-innekter-tombstone" }
             .filter { _, value -> value.response == null }
-            //.mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient) }
+            //.mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
             .mapValues { inntekter -> addMockInntekterResponse(inntekter) }
             .produce(Topics.inntekter) { "produced-inntekter-med-response" }
     }
@@ -77,21 +78,32 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
 
 private fun hentInntekterOgLeggTilResponse(
     inntekter: InntekterKafkaDto,
-    inntektRestClient: InntektRestClient
+    inntektRestClient: InntektRestClient,
+    poppRestClient: PoppRestClient
 ): InntekterKafkaDto {
+    val callId = UUID.randomUUID().toString()
     val inntekterFraInntektskomponent = inntektRestClient.hentInntektsliste(
         inntekter.personident,
         inntekter.request.fom,
         inntekter.request.tom,
         "11-19",
-        UUID.randomUUID().toString()
+        callId
     ).arbeidsInntektMaaned
+
+    val inntekterFraPopp = poppRestClient.hentInntekter(
+        inntekter.personident,
+        inntekter.request.fom.year,
+        inntekter.request.tom.year,
+        callId
+    )
 
     return inntekter.copy(
         response = Response(
             inntekter = inntekterFraInntektskomponent.flatMap { måned ->
                 måned.inntektsliste.map {
                     Inntekt(it.orgnummer ?: "ukjent", måned.årMåned, it.beløp)
+                } + inntekterFraPopp.inntekter.map {
+                    Inntekt("ukjent", YearMonth.of(it.inntektAr, 1), it.belop)
                 }
             }
         )

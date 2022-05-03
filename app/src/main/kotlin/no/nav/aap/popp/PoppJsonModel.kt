@@ -11,7 +11,7 @@ data class PoppResponse(
 )
 
 data class PoppInntekt(
-    val belop: Int,
+    val belop: Double,
     val inntektAr: Int,
     val inntektType: String
 )

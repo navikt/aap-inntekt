@@ -34,14 +34,25 @@ class PoppRestClient(
     private val azureConfig: AzureConfig
 ) {
 
-    fun hentInntekter(request: PoppRequest, callId: String): PoppResponse =
+    fun hentInntekter(
+        fnr: String,
+        fom: Int,
+        tom: Int,
+        callId: String
+    ): PoppResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${poppConfig.baseUrl}/inntekt/sumPi") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
                     contentType(ContentType.Application.Json)
-                    setBody(request)
+                    setBody(
+                        PoppRequest(
+                            fnr = fnr,
+                            fomAr = fom,
+                            tomAr = tom
+                        )
+                    )
                 }.body()
             }
         }
