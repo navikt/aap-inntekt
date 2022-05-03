@@ -1,15 +1,27 @@
 package no.nav.aap.inntektskomponent
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.azure.AzureClient
+import no.nav.aap.ktor.client.AzureConfig
+import no.nav.aap.ktor.client.HttpClientAzureAdInterceptor.Companion.azureAD
+import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
 private const val INNTEKTSKOMPONENT_CLIENT_SECONDS_METRICNAME = "inntektskomponent_client_seconds"
+private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 private val clientLatencyStats: Summary = Summary.build()
     .name(INNTEKTSKOMPONENT_CLIENT_SECONDS_METRICNAME)
     .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
@@ -19,10 +31,8 @@ private val clientLatencyStats: Summary = Summary.build()
     .register()
 
 class InntektRestClient(
-    private val proxyBaseUrl: String,
-    private val scope: String,
-    private val httpClient: HttpClient,
-    private val azureClient: AzureClient
+    private val inntektConfig: InntektConfig,
+    private val azureConfig: AzureConfig
 ) {
     fun hentInntektsliste(
         fnr: String,
@@ -30,55 +40,53 @@ class InntektRestClient(
         tom: YearMonth,
         filter: String,
         callId: String
-    ): InntektskomponentResponse = clientLatencyStats.startTimer().use {
-        runBlocking {
-            httpClient.request<HttpStatement>("$proxyBaseUrl/api/v1/hentinntektliste") {
-                method = HttpMethod.Post
-                header("Authorization", "Bearer ${azureClient.getToken(scope)}")
-                header("Nav-Call-Id", callId)
-                contentType(ContentType.Application.Json)
-                accept(ContentType.Application.Json)
-                body = mapOf(
-                    "ident" to mapOf(
-                        "identifikator" to fnr,
-                        "aktoerType" to "NATURLIG_IDENT"
-                    ),
-                    "ainntektsfilter" to filter,
-                    "formaal" to "Arbeidsavklaringspenger",
-                    "maanedFom" to fom,
-                    "maanedTom" to tom
-                )
-            }.receive()
+    ): InntektskomponentResponse =
+        clientLatencyStats.startTimer().use {
+            runBlocking {
+                httpClient.post("${inntektConfig.proxyBaseUrl}/api/v1/hentinntektliste") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        mapOf(
+                            "ident" to mapOf(
+                                "identifikator" to fnr,
+                                "aktoerType" to "NATURLIG_IDENT"
+                            ),
+                            "ainntektsfilter" to filter,
+                            "formaal" to "Arbeidsavklaringspenger",
+                            "maanedFom" to fom,
+                            "maanedTom" to tom
+                        )
+                    )
+                }.body()
+            }
+        }
+
+    private val httpClient = HttpClient(CIO) {
+        install(HttpTimeout)
+        install(HttpRequestRetry)
+        install(Auth) { azureAD(azureConfig, inntektConfig.scope) }
+        install(Logging) {
+            level = LogLevel.BODY
+            logger = object : Logger {
+                private var logBody = false
+                override fun log(message: String) {
+                    when {
+                        message == "BODY START" -> logBody = true
+                        message == "BODY END" -> logBody = false
+                        logBody -> sikkerLogg.debug("respons fra Inntektskomponenten: $message")
+                    }
+                }
+            }
+        }
+
+        install(ContentNegotiation) {
+            jackson {
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                registerModule(JavaTimeModule())
+            }
         }
     }
-}
-
-data class InntektskomponentResponse(
-    val arbeidsInntektMaaned: List<Måned>
-)
-
-data class Måned(
-    val årMåned: YearMonth,
-    val arbeidsforholdliste: List<Arbeidsforhold>,
-    val inntektsliste: List<Inntekt>
-)
-data class Arbeidsforhold(
-    val type: String?,
-    val orgnummer: String?
-)
-data class Inntekt(
-    val beløp: Double,
-    val inntektstype: Inntektstype,
-    val orgnummer: String?,
-    val fødselsnummer: String?,
-    val aktørId: String?,
-    val beskrivelse: String?,
-    val fordel: String?
-)
-
-enum class Inntektstype {
-    LOENNSINNTEKT,
-    NAERINGSINNTEKT,
-    PENSJON_ELLER_TRYGD,
-    YTELSE_FRA_OFFENTLIGE
 }

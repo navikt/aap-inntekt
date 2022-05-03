@@ -23,18 +23,18 @@ spec:
     pool: {{kafka-pool}}
     streams: true
   liveness:
-    path: /actuator/healthy
+    path: /actuator/live
     initialDelay: 3
     periodSeconds: 3
     failureThreshold: 21
   readiness:
-    path: /actuator/healthy
+    path: /actuator/ready
     initialDelay: 3
     periodSeconds: 3
     failureThreshold: 21
   prometheus:
     enabled: true
-    path: /metrics
+    path: /actuator/metrics
   secureLogs:
     enabled: true
 
