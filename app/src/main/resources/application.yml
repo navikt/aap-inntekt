@@ -3,6 +3,10 @@ azure:
   clientId: ${AZURE_APP_CLIENT_ID}
   clientSecret: ${AZURE_APP_CLIENT_SECRET}
 
+popp:
+  baseUrl: ${POPP_BASE_URL}
+  scope: ${POPP_SCOPE}
+
 inntekt:
   proxyBaseUrl: ${PROXY_BASE_URL}
   scope: ${PROXY_SCOPE}

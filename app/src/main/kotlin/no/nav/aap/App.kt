@@ -19,6 +19,8 @@ import no.nav.aap.ktor.config.loadConfig
 import no.nav.aap.model.Inntekt
 import no.nav.aap.model.InntekterKafkaDto
 import no.nav.aap.model.Response
+import no.nav.aap.popp.PoppConfig
+import no.nav.aap.popp.PoppRestClient
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -27,7 +29,8 @@ private val secureLog = LoggerFactory.getLogger("secureLog")
 data class Config(
     val kafka: KafkaConfig,
     val azure: AzureConfig,
-    val inntekt: InntektConfig
+    val inntekt: InntektConfig,
+    val popp: PoppConfig
 )
 
 fun main() {
@@ -44,6 +47,7 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
     val inntektRestClient = InntektRestClient(config.inntekt, config.azure)
+    val poppRestClient = PoppRestClient(config.popp, config.azure)
 
     kafka.start(config.kafka, prometheus) {
         consume(Topics.inntekter)

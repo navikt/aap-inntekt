@@ -50,3 +50,7 @@ spec:
       value: https://aap-fss-proxy.dev-fss-pub.nais.io
     - name: PROXY_SCOPE
       value: ""
+    - name: POPP_BASE_URL
+      value: https://pensjon-popp-q2.nais.preprod.local/popp/api
+    - name: POPP_SCOPE
+      value: ""
