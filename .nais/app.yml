@@ -12,6 +12,9 @@ spec:
     disableAutoScaling: true
     max: 1
     min: 1
+  azure:
+    application:
+      enabled: true
   resources:
     limits:
       cpu: 1000m
