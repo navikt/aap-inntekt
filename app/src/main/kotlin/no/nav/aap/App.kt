@@ -4,14 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.client.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
-import io.ktor.metrics.micrometer.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.metrics.micrometer.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.micrometer.prometheus.PrometheusConfig
@@ -138,7 +139,7 @@ private fun simpleHttpClient() = HttpClient {
         socketTimeoutMillis = 10000
     }
 
-    install(JsonFeature) {
-        this.serializer = JacksonSerializer(jackson = objectMapper)
+    install(ContentNegotiation) {
+        jackson { objectMapper }
     }
 }

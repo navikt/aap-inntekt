@@ -7,28 +7,27 @@ plugins {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core:1.6.7")
-    implementation("io.ktor:ktor-server-netty:1.6.7")
-    implementation("io.ktor:ktor-client-jackson:1.6.7")
 
-    implementation("io.ktor:ktor-client-core:1.6.7")
-    implementation("io.ktor:ktor-client-cio:1.6.7")
-    implementation("io.ktor:ktor-client-logging-jvm:1.6.7")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.5")
 
-    implementation("io.ktor:ktor-auth:1.6.7")
-    implementation("io.ktor:ktor-client-auth:1.6.7")
-
-    implementation("io.ktor:ktor-metrics-micrometer:1.6.7")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.8.3")
-
-    implementation("com.sksamuel.hoplite:hoplite-yaml:1.4.16")
+    implementation("com.sksamuel.hoplite:hoplite-yaml:2.1.2")
 
     // serialiserig til/fra json på kafka
-    implementation("io.ktor:ktor-serialization:1.6.7")
 
     implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("io.ktor:ktor-jackson:1.6.7")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.0.1")
+    implementation("io.ktor:ktor-server-core:2.0.0")
+    implementation("io.ktor:ktor-server-netty:2.0.0")
+    implementation("io.ktor:ktor-client-jackson:2.0.0")
+    implementation("io.ktor:ktor-client-core:2.0.0")
+    implementation("io.ktor:ktor-client-cio:2.0.0")
+    implementation("io.ktor:ktor-client-logging:2.0.0")
+    implementation("io.ktor:ktor-server-auth:2.0.0")
+    implementation("io.ktor:ktor-client-auth:2.0.0")
+    implementation("io.ktor:ktor-client-content-negotiation:2.0.0")
+    implementation("io.ktor:ktor-serialization-jackson:2.0.0")
+    implementation("io.ktor:ktor-server-metrics-micrometer:2.0.0")
+    testImplementation("io.ktor:ktor-server-test-host:2.0.0")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.1.1")
 
     implementation("org.apache.kafka:kafka-streams:3.1.0")
     implementation("org.apache.kafka:kafka-clients:3.1.0")
@@ -39,10 +38,9 @@ dependencies {
     implementation("no.nav.aap.avro:inntekter:0.0.11")
 
     // JsonSerializer java 8 LocalDate
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.2")
 
     testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-server-test-host:1.6.7")
     // used to override env var runtime
     testImplementation("uk.org.webcompere:system-stubs-jupiter:2.0.1")
 }
