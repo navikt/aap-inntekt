@@ -54,8 +54,7 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
         consume(Topics.inntekter)
             .filterNotNull { "filter-innekter-tombstone" }
             .filter { _, value -> value.response == null }
-            //.mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
-            .mapValues { inntekter -> addMockInntekterResponse(inntekter) }
+            .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
             .produce(Topics.inntekter) { "produced-inntekter-med-response" }
     }
 
@@ -109,14 +108,3 @@ private fun hentInntekterOgLeggTilResponse(
         )
     )
 }
-
-private fun addMockInntekterResponse(inntekter: InntekterKafkaDto): InntekterKafkaDto =
-    inntekter.copy(
-        response = Response(
-            inntekter = listOf(
-                Inntekt("321", inntekter.request.fom.plusYears(2), 400000.0),
-                Inntekt("321", inntekter.request.fom.plusYears(1), 400000.0),
-                Inntekt("321", inntekter.request.fom, 400000.0),
-            )
-        )
-    )
