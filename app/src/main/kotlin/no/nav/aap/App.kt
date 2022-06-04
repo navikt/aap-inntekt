@@ -52,10 +52,10 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
 
     kafka.start(config.kafka, prometheus) {
         consume(Topics.inntekter)
-            .filterNotNull { "filter-innekter-tombstone" }
+            .filterNotNull ( "filter-innekter-tombstone" )
             .filter { _, value -> value.response == null }
             .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
-            .produce(Topics.inntekter) { "produced-inntekter-med-response" }
+            .produce(Topics.inntekter, "produced-inntekter-med-response")
     }
 
     routing {
