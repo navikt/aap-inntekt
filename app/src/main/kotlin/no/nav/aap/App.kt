@@ -118,7 +118,9 @@ private fun hentInntekterOgLeggTilResponse(
             inntekter.request.fom.year,
             inntekter.request.tom.year,
             callId
-        )
+        ).also {
+            secureLog.info("Svar fra popp: ${it.inntekter.size}")
+        }
     } catch (t: Throwable) {
         secureLog.error("Feil fra popp", t)
         PoppResponse(listOf())
