@@ -3,14 +3,15 @@ package no.nav.aap.inntektskomponent
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
@@ -29,6 +30,9 @@ private val clientLatencyStats: Summary = Summary.build()
     .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
     .help("Latency inntektskomponenten, in seconds")
     .register()
+private val objectMapper = jacksonObjectMapper()
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .registerModule(JavaTimeModule())
 
 class InntektRestClient(
     private val inntektConfig: InntektConfig,
@@ -63,7 +67,10 @@ class InntektRestClient(
                             "maanedTom" to tom
                         )
                     )
-                }.body()
+                }
+                    .bodyAsText()
+                    .also { svar -> sikkerLogg.info("Svar fra inntektskomponenten:\n$svar") }
+                    .let(objectMapper::readValue)
             }
         }
 
