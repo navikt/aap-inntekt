@@ -11,9 +11,13 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.inntektskomponent.InntektConfig
 import no.nav.aap.inntektskomponent.InntektRestClient
-import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.kafka.Topics
 import no.nav.aap.kafka.streams.*
+import no.nav.aap.kafka.streams.extension.filter
+import no.nav.aap.kafka.streams.extension.mapValues
+import no.nav.aap.kafka.streams.extension.consume
+import no.nav.aap.kafka.streams.extension.filterNotNull
+import no.nav.aap.kafka.streams.extension.produce
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
 import no.nav.aap.model.Inntekt
@@ -21,6 +25,8 @@ import no.nav.aap.model.InntekterKafkaDto
 import no.nav.aap.model.Response
 import no.nav.aap.popp.PoppConfig
 import no.nav.aap.popp.PoppRestClient
+import org.apache.kafka.streams.StreamsBuilder
+import org.apache.kafka.streams.Topology
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 import java.util.*
@@ -28,7 +34,7 @@ import java.util.*
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
 data class Config(
-    val kafka: KafkaConfig,
+    val kafka: KStreamsConfig,
     val azure: AzureConfig,
     val inntekt: InntektConfig,
     val popp: PoppConfig
@@ -50,13 +56,11 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
     val inntektRestClient = InntektRestClient(config.inntekt, config.azure)
     val poppRestClient = PoppRestClient(config.popp, config.azure)
 
-    kafka.start(config.kafka, prometheus) {
-        consume(Topics.inntekter)
-            .filterNotNull ( "filter-innekter-tombstone" )
-            .filter { _, value -> value.response == null }
-            .mapValues { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
-            .produce(Topics.inntekter, "produced-inntekter-med-response")
-    }
+    kafka.connect(
+        config = config.kafka,
+        registry = prometheus,
+        topology = topology(inntektRestClient, poppRestClient)
+    )
 
     routing {
         route("/actuator") {
@@ -75,26 +79,49 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
     }
 }
 
+private fun topology(inntektRestClient: InntektRestClient, poppRestClient: PoppRestClient): Topology {
+    val streams = StreamsBuilder()
+
+    streams.consume(Topics.inntekter)
+        .filterNotNull ( "filter-inntekter-tombstone" )
+        .filter("filter-inntekt-request") { _, value -> value.response == null }
+        .mapValues("lag-inntekter-response") { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
+        .produce(Topics.inntekter, "produced-inntekter-med-response")
+
+    return streams.build()
+}
+
 private fun hentInntekterOgLeggTilResponse(
     inntekter: InntekterKafkaDto,
     inntektRestClient: InntektRestClient,
     poppRestClient: PoppRestClient
 ): InntekterKafkaDto {
     val callId = UUID.randomUUID().toString()
-    val inntekterFraInntektskomponent = inntektRestClient.hentInntektsliste(
-        inntekter.personident,
-        inntekter.request.fom,
-        inntekter.request.tom,
-        "11-19",
-        callId
-    ).arbeidsInntektMaaned
 
-    val inntekterFraPopp = poppRestClient.hentInntekter(
-        inntekter.personident,
-        inntekter.request.fom.year,
-        inntekter.request.tom.year,
-        callId
-    )
+    val inntekterFraInntektskomponent = try {
+        inntektRestClient.hentInntektsliste(
+            inntekter.personident,
+            inntekter.request.fom,
+            inntekter.request.tom,
+            "11-19",
+            callId
+        ).arbeidsInntektMaaned
+    } catch (t: Throwable) {
+        secureLog.error("Feil i inntektskomponent", t)
+        throw t
+    }
+
+    val inntekterFraPopp = try {
+        poppRestClient.hentInntekter(
+            inntekter.personident,
+            inntekter.request.fom.year,
+            inntekter.request.tom.year,
+            callId
+        )
+    } catch (t: Throwable) {
+        secureLog.error("Feil fra popp", t)
+        throw t
+    }
 
     return inntekter.copy(
         response = Response(

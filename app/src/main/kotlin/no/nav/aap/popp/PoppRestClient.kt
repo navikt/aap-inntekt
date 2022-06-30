@@ -7,7 +7,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
@@ -16,7 +15,7 @@ import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.ktor.client.HttpClientAzureAdInterceptor.Companion.azureAD
+import no.nav.aap.ktor.client.HttpClientAzureAdTokenProvider
 import org.slf4j.LoggerFactory
 
 private const val POPP_CLIENT_SECONDS_METRICNAME = "popp_client_seconds"
@@ -31,8 +30,9 @@ private val clientLatencyStats: Summary = Summary.build()
 
 class PoppRestClient(
     private val poppConfig: PoppConfig,
-    private val azureConfig: AzureConfig
+    azureConfig: AzureConfig
 ) {
+    private val tokenProvider = HttpClientAzureAdTokenProvider(azureConfig, poppConfig.scope)
 
     fun hentInntekter(
         fnr: String,
@@ -42,9 +42,11 @@ class PoppRestClient(
     ): PoppResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
+                val token = tokenProvider.getToken()
                 httpClient.post("${poppConfig.baseUrl}/inntekt/sumPi") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
+                    bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(
                         PoppRequest(
@@ -60,7 +62,6 @@ class PoppRestClient(
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
-        install(Auth) { azureAD(azureConfig, poppConfig.scope) }
         install(Logging) {
             level = LogLevel.BODY
             logger = object : Logger {

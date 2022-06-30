@@ -16,7 +16,7 @@ import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.ktor.client.HttpClientAzureAdInterceptor.Companion.azureAD
+import no.nav.aap.ktor.client.HttpClientAzureAdTokenProvider
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
@@ -32,8 +32,10 @@ private val clientLatencyStats: Summary = Summary.build()
 
 class InntektRestClient(
     private val inntektConfig: InntektConfig,
-    private val azureConfig: AzureConfig
+    azureConfig: AzureConfig
 ) {
+    private val tokenProvider = HttpClientAzureAdTokenProvider(azureConfig, inntektConfig.scope)
+
     fun hentInntektsliste(
         fnr: String,
         fom: YearMonth,
@@ -43,9 +45,11 @@ class InntektRestClient(
     ): InntektskomponentResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
+                val token = tokenProvider.getToken()
                 httpClient.post("${inntektConfig.proxyBaseUrl}/api/v1/hentinntektliste") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
+                    bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(
                         mapOf(
@@ -66,7 +70,6 @@ class InntektRestClient(
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
-        install(Auth) { azureAD(azureConfig, inntektConfig.scope) }
         install(Logging) {
             level = LogLevel.BODY
             logger = object : Logger {
