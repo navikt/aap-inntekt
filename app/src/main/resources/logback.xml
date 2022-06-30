@@ -36,7 +36,7 @@
         <appender-ref ref="${LOG_APPENDER:-pretty}"/>
     </logger>
 
-    <logger name="secureLog" level="INFO" additivity="false">
+    <logger name="secureLog" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
 
