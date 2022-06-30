@@ -24,6 +24,7 @@ import no.nav.aap.model.Inntekt
 import no.nav.aap.model.InntekterKafkaDto
 import no.nav.aap.model.Response
 import no.nav.aap.popp.PoppConfig
+import no.nav.aap.popp.PoppResponse
 import no.nav.aap.popp.PoppRestClient
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
@@ -108,7 +109,7 @@ private fun hentInntekterOgLeggTilResponse(
         ).arbeidsInntektMaaned
     } catch (t: Throwable) {
         secureLog.error("Feil i inntektskomponent", t)
-        throw t
+        listOf()
     }
 
     val inntekterFraPopp = try {
@@ -120,7 +121,7 @@ private fun hentInntekterOgLeggTilResponse(
         )
     } catch (t: Throwable) {
         secureLog.error("Feil fra popp", t)
-        throw t
+        PoppResponse(listOf())
     }
 
     return inntekter.copy(
