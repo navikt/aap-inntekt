@@ -99,7 +99,7 @@ private fun hentInntekterOgLeggTilResponse(
 ): InntekterKafkaDto {
     val callId = UUID.randomUUID().toString()
 
-    val inntekterFraInntektskomponent = try {
+    val inntekterFraInntektskomponent =
         inntektRestClient.hentInntektsliste(
             inntekter.personident,
             inntekter.request.fom,
@@ -107,24 +107,14 @@ private fun hentInntekterOgLeggTilResponse(
             "ArbeidsavklaringspengerA-inntekt",
             callId
         ).arbeidsInntektMaaned
-    } catch (t: Throwable) {
-        secureLog.error("Feil i inntektskomponent", t)
-        listOf()
-    }
 
-    val inntekterFraPopp = try {
+    val inntekterFraPopp =
         poppRestClient.hentInntekter(
             inntekter.personident,
             inntekter.request.fom.year,
             inntekter.request.tom.year,
             callId
-        ).also {
-            secureLog.info("Svar fra popp: ${it.inntekter.size}")
-        }
-    } catch (t: Throwable) {
-        secureLog.error("Feil fra popp", t)
-        PoppResponse(listOf())
-    }
+        )
 
     return inntekter.copy(
         response = Response(
