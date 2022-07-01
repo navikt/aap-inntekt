@@ -104,7 +104,7 @@ private fun hentInntekterOgLeggTilResponse(
             inntekter.personident,
             inntekter.request.fom,
             inntekter.request.tom,
-            "11-19",
+            "ArbeidsavklaringspengerA-inntekt",
             callId
         ).arbeidsInntektMaaned
     } catch (t: Throwable) {
