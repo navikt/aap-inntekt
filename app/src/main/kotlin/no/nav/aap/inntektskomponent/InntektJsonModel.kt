@@ -7,29 +7,12 @@ data class InntektskomponentResponse(
 )
 
 data class Måned(
-    val årMåned: YearMonth,
-    val arbeidsforholdliste: List<Arbeidsforhold>,
-    val inntektsliste: List<Inntekt>
+    val aarMaaned: YearMonth,
+    val arbeidsInntektInformasjon: ArbeidsInntektInformasjon
 )
 
-data class Arbeidsforhold(
-    val type: String?,
-    val orgnummer: String?
-)
+data class ArbeidsInntektInformasjon(val inntektsliste: List<Inntekt>)
 
 data class Inntekt(
-    val beløp: Double,
-    val inntektstype: Inntektstype,
-    val orgnummer: String?,
-    val fødselsnummer: String?,
-    val aktørId: String?,
-    val beskrivelse: String?,
-    val fordel: String?
+    val beloep: Double,
 )
-
-enum class Inntektstype {
-    LOENNSINNTEKT,
-    NAERINGSINNTEKT,
-    PENSJON_ELLER_TRYGD,
-    YTELSE_FRA_OFFENTLIGE
-}
