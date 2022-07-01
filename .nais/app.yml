@@ -42,10 +42,6 @@ spec:
     enabled: true
 
   env:
-    - name: LOG_APPENDER
-      value: json
-    - name: KAFKA_SECURITY_ENABLED
-      value: "true"
     - name: PROXY_BASE_URL
       value: https://aap-fss-proxy.dev-fss-pub.nais.io
     - name: PROXY_SCOPE
