@@ -11,7 +11,9 @@ data class Måned(
     val arbeidsInntektInformasjon: ArbeidsInntektInformasjon
 )
 
-data class ArbeidsInntektInformasjon(val inntektsliste: List<Inntekt>)
+data class ArbeidsInntektInformasjon(
+    val inntektListe: List<Inntekt>
+)
 
 data class Inntekt(
     val beloep: Double,

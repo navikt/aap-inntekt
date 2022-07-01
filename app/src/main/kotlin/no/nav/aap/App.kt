@@ -129,7 +129,7 @@ private fun hentInntekterOgLeggTilResponse(
     return inntekter.copy(
         response = Response(
             inntekter = inntekterFraInntektskomponent.flatMap { måned ->
-                måned.arbeidsInntektInformasjon.inntektsliste.map {
+                måned.arbeidsInntektInformasjon.inntektListe.map {
                     Inntekt("ukjent", måned.aarMaaned, it.beloep)
                 } + inntekterFraPopp.inntekter.map {
                     Inntekt("ukjent", YearMonth.of(it.inntektAr, 1), it.belop)
