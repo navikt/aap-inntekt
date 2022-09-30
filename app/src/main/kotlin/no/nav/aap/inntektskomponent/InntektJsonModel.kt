@@ -3,7 +3,7 @@ package no.nav.aap.inntektskomponent
 import java.time.YearMonth
 
 data class InntektskomponentResponse(
-    val arbeidsInntektMaaned: List<Måned>
+    val arbeidsInntektMaaned: List<Måned> = emptyList()
 )
 
 data class Måned(
