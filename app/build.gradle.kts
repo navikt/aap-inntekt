@@ -1,5 +1,5 @@
 val aapLibVersion = "3.1.5"
-val ktorVersion = "2.0.3"
+val ktorVersion = "2.1.2"
 
 plugins {
     id("com.github.johnrengelman.shadow")
@@ -25,15 +25,15 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
 
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.9.4")
 
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
-    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("ch.qos.logback:logback-classic:1.4.1")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
