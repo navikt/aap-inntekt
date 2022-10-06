@@ -12,19 +12,16 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.inntektskomponent.InntektConfig
 import no.nav.aap.inntektskomponent.InntektRestClient
 import no.nav.aap.kafka.Topics
-import no.nav.aap.kafka.streams.*
-import no.nav.aap.kafka.streams.extension.filter
-import no.nav.aap.kafka.streams.extension.mapValues
-import no.nav.aap.kafka.streams.extension.consume
-import no.nav.aap.kafka.streams.extension.filterNotNull
-import no.nav.aap.kafka.streams.extension.produce
+import no.nav.aap.kafka.streams.KStreams
+import no.nav.aap.kafka.streams.KStreamsConfig
+import no.nav.aap.kafka.streams.KafkaStreams
+import no.nav.aap.kafka.streams.extension.*
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
 import no.nav.aap.model.Inntekt
 import no.nav.aap.model.InntekterKafkaDto
 import no.nav.aap.model.Response
 import no.nav.aap.popp.PoppConfig
-import no.nav.aap.popp.PoppResponse
 import no.nav.aap.popp.PoppRestClient
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
@@ -84,9 +81,15 @@ private fun topology(inntektRestClient: InntektRestClient, poppRestClient: PoppR
     val streams = StreamsBuilder()
 
     streams.consume(Topics.inntekter)
-        .filterNotNull ( "filter-inntekter-tombstone" )
+        .filterNotNull("filter-inntekter-tombstone")
         .filter("filter-inntekt-request") { _, value -> value.response == null }
-        .mapValues("lag-inntekter-response") { inntekter -> hentInntekterOgLeggTilResponse(inntekter, inntektRestClient, poppRestClient) }
+        .mapValues("lag-inntekter-response") { inntekter ->
+            hentInntekterOgLeggTilResponse(
+                inntekter,
+                inntektRestClient,
+                poppRestClient
+            )
+        }
         .produce(Topics.inntekter, "produced-inntekter-med-response")
 
     return streams.build()
@@ -121,9 +124,9 @@ private fun hentInntekterOgLeggTilResponse(
             inntekter = inntekterFraInntektskomponent.flatMap { måned ->
                 måned.arbeidsInntektInformasjon.inntektListe.map {
                     Inntekt("ukjent", måned.aarMaaned, it.beloep)
-                } + inntekterFraPopp.inntekter.map {
-                    Inntekt("ukjent", YearMonth.of(it.inntektAr, 1), it.belop)
                 }
+            } + inntekterFraPopp.inntekter.map {
+                Inntekt("ukjent", YearMonth.of(it.inntektAr, 1), it.belop)
             }
         )
     )
