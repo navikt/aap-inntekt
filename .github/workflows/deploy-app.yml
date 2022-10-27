@@ -1,4 +1,4 @@
-name: Deploy Application
+name: Deploy Inntekt
 
 on:
   push:
@@ -9,7 +9,6 @@ env:
 
 jobs:
   build:
-    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,16 +16,15 @@ jobs:
         with:
           java-version: 18
           distribution: 'temurin'
-          check-latest: true
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v2.3.3
         with:
-          arguments: test app:shadowJar --continue --no-daemon
+          arguments: test app:buildFatJar --continue --no-daemon
 
       - uses: dorny/test-reporter@v1.5.0
         if: always()
         with:
-          name: 🧬 Test results
+          name: test
           path: "**/build/test-results/test/TEST-*.xml"
           reporter: java-junit
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -37,13 +35,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bygg, tag og push Docker image
-        run: |
+      - run: |
           docker build --pull --tag ${{ env.IMAGE }} --tag ghcr.io/${{ github.repository }}:latest .
           docker push ghcr.io/navikt/${{ github.repository }} --all-tags
 
   deploy-dev:
-    name: Deploy (dev)
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +53,6 @@ jobs:
           VARS: .nais/dev.yml
 
   deploy-prod:
-    name: Deploy (prod)
     needs: build
     runs-on: ubuntu-latest
     steps:

@@ -14,8 +14,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.ktor.client.HttpClientAzureAdTokenProvider
 import org.slf4j.LoggerFactory
 
 private const val POPP_CLIENT_SECONDS_METRICNAME = "popp_client_seconds"
@@ -32,7 +32,7 @@ class PoppRestClient(
     private val poppConfig: PoppConfig,
     azureConfig: AzureConfig
 ) {
-    private val tokenProvider = HttpClientAzureAdTokenProvider(azureConfig, poppConfig.scope)
+    private val tokenProvider = AzureAdTokenProvider(azureConfig, poppConfig.scope)
 
     fun hentInntekter(
         fnr: String,
@@ -42,7 +42,7 @@ class PoppRestClient(
     ): PoppResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
-                val token = tokenProvider.getToken()
+                val token = tokenProvider.getClientCredentialToken()
                 httpClient.post("${poppConfig.baseUrl}/inntekt/sumPi") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)

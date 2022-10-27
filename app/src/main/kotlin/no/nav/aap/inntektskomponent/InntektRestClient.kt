@@ -16,8 +16,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.ktor.client.HttpClientAzureAdTokenProvider
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
@@ -38,7 +38,7 @@ class InntektRestClient(
     private val inntektConfig: InntektConfig,
     azureConfig: AzureConfig
 ) {
-    private val tokenProvider = HttpClientAzureAdTokenProvider(azureConfig, inntektConfig.scope)
+    private val tokenProvider = AzureAdTokenProvider(azureConfig, inntektConfig.scope)
 
     fun hentInntektsliste(
         fnr: String,
@@ -49,7 +49,7 @@ class InntektRestClient(
     ): InntektskomponentResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
-                val token = tokenProvider.getToken()
+                val token = tokenProvider.getClientCredentialToken()
                 httpClient.post("${inntektConfig.proxyBaseUrl}/inntektskomponent/") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)

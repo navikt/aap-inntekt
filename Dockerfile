@@ -1,10 +1,15 @@
-FROM gradle:7.4.2-jdk18-alpine AS buildToJar
-COPY . .
+FROM alpine:3.16 as app
+RUN apk --update --no-cache add zip
+COPY /app/build/libs/app-all.jar app.jar
+RUN zip -d app.jar librocksdbjni-linux32.so librocksdbjni-linux32-musl.so librocksdbjni-linux64.so \
+    librocksdbjni-linux-aarch64.so librocksdbjni-linux-aarch64-musl.so librocksdbjni-linux-ppc64le.so \
+    librocksdbjni-linux-ppc64le-musl.so librocksdbjni-linux-s390x.so librocksdbjni-linux-s390x-musl.so \
+    librocksdbjni-osx-arm64.jnilib librocksdbjni-osx-x86_64.jnilib librocksdbjni-win64.dll
 
-# RocksDB (kafka streams KTable) bruker noen gclibs som ikke er inkludert i alpine.
-# Alpine bruker noe som heter 'musl libc' i steden for 'gclib' som vi trenger, og vi får derfor ikke
-# lagt inn pakken manuelt. Vi mangler libc6-compat, som finnes i 17-jdk-focal som er ubunt-basert.
-FROM eclipse-temurin:18-jdk-focal
 
-COPY --from=buildToJar /home/gradle/app/build/libs/*.jar app.jar
-CMD ["java", "-XX:+UseParallelGC", "-jar", "app.jar"]
+# Docker image on Alpine Linux with JRE 18 Temurin and C++ standard lib (for rocksdb)
+FROM eclipse-temurin:18.0.2_9-jre-alpine
+ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
+RUN apk --update --no-cache add libstdc++
+COPY --from=app app.jar .
+CMD ["java", "-Xmx4G", "-Xms4G", "-XX:+UseParallelGC", "-jar", "app.jar"]
