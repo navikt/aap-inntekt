@@ -31,7 +31,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.4")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.0")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
