@@ -25,7 +25,7 @@ jobs:
         if: always()
         with:
           name: test
-          path: "**/build/test-results/test/TEST-*.xml"
+          path: "app/build/test-results/test/TEST-*.xml"
           reporter: java-junit
           token: ${{ secrets.GITHUB_TOKEN }}
 
