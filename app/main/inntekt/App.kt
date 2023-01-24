@@ -1,4 +1,4 @@
-package no.nav.aap
+package no.nav.inntekt
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -9,20 +9,20 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.inntektskomponent.InntektConfig
-import no.nav.aap.inntektskomponent.InntektRestClient
-import no.nav.aap.kafka.Topics
+import no.nav.inntekt.inntektskomponent.InntektConfig
+import no.nav.inntekt.inntektskomponent.InntektRestClient
+import no.nav.inntekt.kafka.Topics
 import no.nav.aap.kafka.streams.KStreams
 import no.nav.aap.kafka.streams.KStreamsConfig
 import no.nav.aap.kafka.streams.KafkaStreams
 import no.nav.aap.kafka.streams.extension.*
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
-import no.nav.aap.model.Inntekt
-import no.nav.aap.model.InntekterKafkaDto
-import no.nav.aap.model.Response
-import no.nav.aap.popp.PoppConfig
-import no.nav.aap.popp.PoppRestClient
+import no.nav.inntekt.model.Inntekt
+import no.nav.inntekt.model.InntekterKafkaDto
+import no.nav.inntekt.model.Response
+import no.nav.inntekt.popp.PoppConfig
+import no.nav.inntekt.popp.PoppRestClient
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.slf4j.LoggerFactory

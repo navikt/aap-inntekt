@@ -1,4 +1,4 @@
-package no.nav.aap.model
+package no.nav.inntekt.model
 
 import java.time.YearMonth
 

@@ -1,4 +1,4 @@
-package no.nav.aap.popp
+package no.nav.inntekt.popp
 
 data class PoppConfig (
     val baseUrl: String,

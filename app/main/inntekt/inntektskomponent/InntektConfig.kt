@@ -1,4 +1,4 @@
-package no.nav.aap.inntektskomponent
+package no.nav.inntekt.inntektskomponent
 
 data class InntektConfig(
     val proxyBaseUrl: String,
