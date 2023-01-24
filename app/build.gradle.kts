@@ -10,7 +10,7 @@ val aapLibVersion = "3.5.39"
 val ktorVersion = "2.1.2"
 
 application {
-    mainClass.set("no.nav.aap.AppKt")
+    mainClass.set("inntekt.AppKt")
 }
 
 dependencies {
