@@ -1,4 +1,4 @@
-package no.nav.inntekt.inntektskomponent
+package inntekt.inntektskomponent
 
 import java.time.YearMonth
 

@@ -1,4 +1,4 @@
-package no.nav.aap
+package inntekt
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

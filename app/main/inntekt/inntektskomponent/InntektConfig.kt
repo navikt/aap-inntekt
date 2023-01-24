@@ -1,4 +1,4 @@
-package no.nav.inntekt.inntektskomponent
+package inntekt.inntektskomponent
 
 data class InntektConfig(
     val proxyBaseUrl: String,

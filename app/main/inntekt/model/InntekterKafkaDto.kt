@@ -1,4 +1,4 @@
-package no.nav.inntekt.model
+package inntekt.model
 
 import java.time.YearMonth
 

@@ -1,4 +1,4 @@
-package no.nav.inntekt.popp
+package inntekt.popp
 
 data class PoppRequest(
     val fnr: String,

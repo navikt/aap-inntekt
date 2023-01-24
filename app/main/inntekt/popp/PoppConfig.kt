@@ -1,4 +1,4 @@
-package no.nav.inntekt.popp
+package inntekt.popp
 
 data class PoppConfig (
     val baseUrl: String,
