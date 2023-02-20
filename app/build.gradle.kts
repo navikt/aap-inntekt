@@ -16,8 +16,8 @@ application {
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
-    implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
-    testImplementation("com.github.navikt.aap-libs:kafka-test:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:kafka-2:$aapLibVersion")
+    testImplementation("com.github.navikt.aap-libs:kafka-test-2:$aapLibVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")

@@ -12,10 +12,6 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import inntekt.inntektskomponent.InntektConfig
 import inntekt.inntektskomponent.InntektRestClient
 import inntekt.kafka.Topics
-import no.nav.aap.kafka.streams.KStreams
-import no.nav.aap.kafka.streams.KStreamsConfig
-import no.nav.aap.kafka.streams.KafkaStreams
-import no.nav.aap.kafka.streams.extension.*
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
 import inntekt.model.Inntekt
@@ -23,8 +19,10 @@ import inntekt.model.InntekterKafkaDto
 import inntekt.model.Response
 import inntekt.popp.PoppConfig
 import inntekt.popp.PoppRestClient
-import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.Topology
+import no.nav.aap.kafka.streams.v2.KStreams
+import no.nav.aap.kafka.streams.v2.KafkaStreams
+import no.nav.aap.kafka.streams.v2.Topology
+import no.nav.aap.kafka.streams.v2.config.StreamsConfig
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 import java.util.*
@@ -32,7 +30,7 @@ import java.util.*
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
 data class Config(
-    val kafka: KStreamsConfig,
+    val kafka: StreamsConfig,
     val azure: AzureConfig,
     val inntekt: InntektConfig,
     val popp: PoppConfig
@@ -42,7 +40,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(kafka: KStreams = KafkaStreams) {
+fun Application.server(kafka: KStreams = KafkaStreams()) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val config = loadConfig<Config>()
 
@@ -66,11 +64,11 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
                 call.respond(prometheus.scrape())
             }
             get("/live") {
-                val status = if (kafka.isLive()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
+                val status = if (kafka.live()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
                 call.respond(status, "vedtak")
             }
             get("/ready") {
-                val status = if (kafka.isReady()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
+                val status = if (kafka.ready()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
                 call.respond(status, "vedtak")
             }
         }
@@ -78,21 +76,18 @@ fun Application.server(kafka: KStreams = KafkaStreams) {
 }
 
 private fun topology(inntektRestClient: InntektRestClient, poppRestClient: PoppRestClient): Topology {
-    val streams = StreamsBuilder()
-
-    streams.consume(Topics.inntekter)
-        .filterNotNull("filter-inntekter-tombstone")
-        .filter("filter-inntekt-request") { _, value -> value.response == null }
-        .mapValues("lag-inntekter-response") { inntekter ->
-            hentInntekterOgLeggTilResponse(
-                inntekter,
-                inntektRestClient,
-                poppRestClient
-            )
-        }
-        .produce(Topics.inntekter, "produced-inntekter-med-response")
-
-    return streams.build()
+    return no.nav.aap.kafka.streams.v2.topology {
+        consume(Topics.inntekter)
+            .filter { value -> value.response == null }
+            .map { inntekter ->
+                hentInntekterOgLeggTilResponse(
+                    inntekter,
+                    inntektRestClient,
+                    poppRestClient
+                )
+            }
+            .produce(Topics.inntekter)
+    }
 }
 
 private fun hentInntekterOgLeggTilResponse(
