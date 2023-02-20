@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.0"
-    id("io.ktor.plugin") version "2.2.2"
+    kotlin("jvm") version "1.8.10"
+    id("io.ktor.plugin") version "2.2.3"
     application
 }
 
-val aapLibVersion = "3.5.39"
-val ktorVersion = "2.1.2"
+val aapLibVersion = "3.5.66"
+val ktorVersion = "2.2.3"
 
 application {
     mainClass.set("inntekt.AppKt")
@@ -28,15 +28,15 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
 
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.4")
 
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
-    implementation("ch.qos.logback:logback-classic:1.4.3")
+    implementation("ch.qos.logback:logback-classic:1.4.5")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
