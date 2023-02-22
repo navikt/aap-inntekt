@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-val aapLibVersion = "3.5.77"
+val aapLibVersion = "3.6.3"
 val ktorVersion = "2.2.3"
 
 application {
@@ -45,7 +45,6 @@ dependencies {
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-//    maven("https://packages.confluent.io/maven/") // transitive avro dependency
 }
 
 tasks {

@@ -75,7 +75,7 @@ fun Application.server(kafka: KStreams = KafkaStreams()) {
     }
 }
 
-private fun topology(inntektRestClient: InntektRestClient, poppRestClient: PoppRestClient): Topology {
+internal fun topology(inntektRestClient: InntektRestClient, poppRestClient: PoppRestClient): Topology {
     return no.nav.aap.kafka.streams.v2.topology {
         consume(Topics.inntekter)
             .filter { value -> value.response == null }
