@@ -41,12 +41,11 @@ spec:
     path: /actuator/metrics
   secureLogs:
     enabled: true
-
   env:
     - name: PROXY_BASE_URL
-      value: https://aap-fss-proxy.dev-fss-pub.nais.io
+      value: https://team-inntekt-proxy.dev-fss-pub.nais.io/proxy/inntektskomponenten-q2
     - name: PROXY_SCOPE
-      value: "api://dev-fss.aap.fss-proxy/.default"
+      value: api://dev-fss.team-inntekt.inntektskomponenten/.default
     - name: POPP_BASE_URL
       value: https://pensjon-popp-q2.dev-fss-pub.nais.io/popp/api
     - name: POPP_SCOPE

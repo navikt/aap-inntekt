@@ -50,7 +50,7 @@ class InntektRestClient(
         clientLatencyStats.startTimer().use {
             runBlocking {
                 val token = tokenProvider.getClientCredentialToken()
-                httpClient.post("${inntektConfig.proxyBaseUrl}/inntektskomponent/") {
+                httpClient.post("${inntektConfig.proxyBaseUrl}/rs/api/v1/hentinntektliste") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
                     bearerAuth(token)
