@@ -18,3 +18,22 @@ data class ArbeidsInntektInformasjon(
 data class Inntekt(
     val beloep: Double,
 )
+
+data class InntektskomponentRequest(
+    val fnr: String,
+    val fom: YearMonth,
+    val tom: YearMonth,
+    val filter: String,
+    val callId: String
+) {
+    fun hentinntektliste() = mapOf(
+        "ident" to mapOf(
+            "identifikator" to fnr,
+            "aktoerType" to "NATURLIG_IDENT"
+        ),
+        "ainntektsfilter" to filter,
+        "formaal" to "Arbeidsavklaringspenger",
+        "maanedFom" to fom,
+        "maanedTom" to tom
+    )
+}

@@ -19,7 +19,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
 import org.slf4j.LoggerFactory
-import java.time.YearMonth
 
 private const val INNTEKTSKOMPONENT_CLIENT_SECONDS_METRICNAME = "inntektskomponent_client_seconds"
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
@@ -40,33 +39,15 @@ class InntektRestClient(
 ) {
     private val tokenProvider = AzureAdTokenProvider(azureConfig, inntektConfig.scope)
 
-    fun hentInntektsliste(
-        fnr: String,
-        fom: YearMonth,
-        tom: YearMonth,
-        filter: String,
-        callId: String
-    ): InntektskomponentResponse =
+    fun hentInntektsliste(request: InntektskomponentRequest): InntektskomponentResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
-                val token = tokenProvider.getClientCredentialToken()
                 httpClient.post("${inntektConfig.proxyBaseUrl}/rs/api/v1/hentinntektliste") {
                     accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(token)
+                    header("Nav-Call-Id", request.callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken())
                     contentType(ContentType.Application.Json)
-                    setBody(
-                        mapOf(
-                            "ident" to mapOf(
-                                "identifikator" to fnr,
-                                "aktoerType" to "NATURLIG_IDENT"
-                            ),
-                            "ainntektsfilter" to filter,
-                            "formaal" to "Arbeidsavklaringspenger",
-                            "maanedFom" to fom,
-                            "maanedTom" to tom
-                        )
-                    )
+                    setBody(request.hentinntektliste())
                 }
                     .bodyAsText()
                     .also { svar -> sikkerLogg.info("Svar fra inntektskomponenten:\n$svar") }

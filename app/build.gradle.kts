@@ -17,22 +17,20 @@ dependencies {
     implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:kafka-2:$aapLibVersion")
-    testImplementation("com.github.navikt.aap-libs:kafka-test-2:$aapLibVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.10.4")
 
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.4")
     implementation("ch.qos.logback:logback-classic:1.4.5")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.3")
 
@@ -40,6 +38,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("com.github.navikt.aap-libs:kafka-test-2:$aapLibVersion")
 }
 
 repositories {

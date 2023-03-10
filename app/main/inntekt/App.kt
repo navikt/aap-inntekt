@@ -1,5 +1,14 @@
 package inntekt
 
+import inntekt.inntektskomponent.InntektConfig
+import inntekt.inntektskomponent.InntektRestClient
+import inntekt.inntektskomponent.InntektskomponentRequest
+import inntekt.kafka.Topics
+import inntekt.model.Inntekt
+import inntekt.model.InntekterKafkaDto
+import inntekt.model.Response
+import inntekt.popp.PoppConfig
+import inntekt.popp.PoppRestClient
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -9,20 +18,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import inntekt.inntektskomponent.InntektConfig
-import inntekt.inntektskomponent.InntektRestClient
-import inntekt.kafka.Topics
-import no.nav.aap.ktor.client.AzureConfig
-import no.nav.aap.ktor.config.loadConfig
-import inntekt.model.Inntekt
-import inntekt.model.InntekterKafkaDto
-import inntekt.model.Response
-import inntekt.popp.PoppConfig
-import inntekt.popp.PoppRestClient
 import no.nav.aap.kafka.streams.v2.KStreams
 import no.nav.aap.kafka.streams.v2.KafkaStreams
 import no.nav.aap.kafka.streams.v2.Topology
 import no.nav.aap.kafka.streams.v2.config.StreamsConfig
+import no.nav.aap.ktor.client.AzureConfig
+import no.nav.aap.ktor.config.loadConfig
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 import java.util.*
@@ -97,14 +98,15 @@ private fun hentInntekterOgLeggTilResponse(
 ): InntekterKafkaDto {
     val callId = UUID.randomUUID().toString()
 
-    val inntekterFraInntektskomponent =
-        inntektRestClient.hentInntektsliste(
-            inntekter.personident,
-            inntekter.request.fom,
-            inntekter.request.tom,
-            "ArbeidsavklaringspengerA-inntekt",
-            callId
-        ).arbeidsInntektMaaned
+    val request = InntektskomponentRequest(
+        fnr = inntekter.personident,
+        fom = inntekter.request.fom,
+        tom = inntekter.request.tom,
+        filter = "ArbeidsavklaringspengerA-inntekt",
+        callId = callId,
+    )
+
+    val inntekterFraInntektskomponent = inntektRestClient.hentInntektsliste(request).arbeidsInntektMaaned
 
     val inntekterFraPopp =
         poppRestClient.hentInntekter(
