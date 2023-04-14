@@ -6,7 +6,7 @@ import inntekt.popp.PoppConfig
 import inntekt.popp.PoppRestClient
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import no.nav.aap.kafka.streams.v2.config.StreamsConfig
-import no.nav.aap.kafka.streams.v2.test.KStreamsMock
+import no.nav.aap.kafka.streams.v2.test.StreamsMock
 import no.nav.aap.ktor.client.AzureConfig
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -16,7 +16,7 @@ class DescribeTopology {
 
     @Test
     fun `mermaid diagram`() {
-        val kafka = KStreamsMock().apply {
+        val kafka = StreamsMock().apply {
             val azure = AzureConfig(tokenEndpoint = URL("http://azure.mock"), clientId = "", clientSecret = "")
             val inntekt = InntektRestClient(
                 inntektConfig = InntektConfig("", ""),

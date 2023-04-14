@@ -18,7 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.kafka.streams.v2.KStreams
+import no.nav.aap.kafka.streams.v2.Streams
 import no.nav.aap.kafka.streams.v2.KafkaStreams
 import no.nav.aap.kafka.streams.v2.Topology
 import no.nav.aap.kafka.streams.v2.config.StreamsConfig
@@ -41,7 +41,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(kafka: KStreams = KafkaStreams()) {
+fun Application.server(kafka: Streams = KafkaStreams()) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val config = loadConfig<Config>()
 

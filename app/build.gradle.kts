@@ -1,12 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.10"
+    kotlin("jvm") version "1.8.20"
     id("io.ktor.plugin") version "2.2.4"
     application
 }
 
-val aapLibVersion = "3.6.33"
+val aapLibVersion = "3.7.12"
 val ktorVersion = "2.2.4"
 
 application {
