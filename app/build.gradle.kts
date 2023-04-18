@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-val aapLibVersion = "3.7.12"
+val aapLibVersion = "3.7.18"
 val ktorVersion = "2.2.4"
 
 application {
